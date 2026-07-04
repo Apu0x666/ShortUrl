@@ -236,6 +236,32 @@ docker compose run --rm loadtest run-smoke-check --base-url "http://nginx" --wai
 bash ./scripts/smoke-check.sh --base-url "http://127.0.0.1:8080" --wait-ready 5
 ```
 
+## Массовая генерация shortlink
+
+Скрипт `scripts/seed-shortlinks.sh` создает записи через API (а не прямой SQL), поэтому они обрабатываются очередью и получают `short_code`.
+
+Базовый запуск (рекомендуется для локального стенда):
+
+```bash
+bash ./scripts/seed-shortlinks.sh
+```
+
+Редактируемые параметры и значения по умолчанию перечислены в `bash ./scripts/seed-shortlinks.sh --help`.
+
+Все параметры можно переопределить флагами. Примеры:
+
+```bash
+bash ./scripts/seed-shortlinks.sh --count 1000 --prefix "https://demo.local/item"
+bash ./scripts/seed-shortlinks.sh --batch-size 80 --max-wait 600 --poll-interval 2
+bash ./scripts/seed-shortlinks.sh --wait-mode api
+bash ./scripts/seed-shortlinks.sh --batch-size 100 --curl-timeout 25 --create-retries 6 --retry-delay 1
+bash ./scripts/seed-shortlinks.sh --no-wait-ready
+```
+
+Если в `Create step` встречается `http=000`, это транспортная ошибка `curl` (не получен HTTP-ответ: timeout/connect/reset). Для таких случаев используйте `--curl-timeout` и `--create-retries`.
+
+После выполнения записи остаются в БД до следующего `load-test` (в нем используется `TRUNCATE`) или ручной очистки данных.
+
 ## Load-test сценарий (конкурентность и деградация)
 
 Скрипт `scripts/load-test.sh` проверяет пункт по конкурентным запросам:
