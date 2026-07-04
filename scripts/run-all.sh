@@ -94,16 +94,36 @@ compose() {
     "${DOCKER_CMD[@]}" "$@"
 }
 
+run_script_in_loadtest() {
+    local script_name="$1"
+    shift
+
+    local normalized_script="/tmp/${script_name}"
+    local command="tr -d '\\r' < /workspace/scripts/${script_name} > ${normalized_script} && chmod +x ${normalized_script} && bash ${normalized_script}"
+
+    if [[ "$#" -gt 0 ]]; then
+        command="${command} $*"
+    fi
+
+    compose run --rm loadtest sh -lc "$command"
+}
+
 run_smoke_check_in_container() {
-    compose run --rm loadtest sh -lc "tr -d '\r' < /workspace/scripts/smoke-check.sh > /tmp/smoke-check.sh && chmod +x /tmp/smoke-check.sh && bash /tmp/smoke-check.sh --base-url http://nginx --wait-ready ${SMOKE_WAIT}"
+    run_script_in_loadtest smoke-check.sh --base-url http://nginx --wait-ready "$SMOKE_WAIT"
 }
 
 run_quick_load_test_in_container() {
-    compose run --rm loadtest sh -lc "tr -d '\r' < /workspace/scripts/load-test.sh > /tmp/load-test.sh && chmod +x /tmp/load-test.sh && bash /tmp/load-test.sh --sizes 100,1000 --duration 5s --race-requests 200 --max-avg-growth 100 --max-p95-growth 100 --max-rps-drop 1"
+    run_script_in_loadtest load-test.sh \
+        --sizes 100,1000 \
+        --duration 5s \
+        --race-requests 200 \
+        --max-avg-growth 100 \
+        --max-p95-growth 100 \
+        --max-rps-drop 1
 }
 
 run_full_load_test_in_container() {
-    compose run --rm loadtest sh -lc "tr -d '\r' < /workspace/scripts/load-test.sh > /tmp/load-test.sh && chmod +x /tmp/load-test.sh && bash /tmp/load-test.sh"
+    run_script_in_loadtest load-test.sh
 }
 
 composer_install_with_retry() {
