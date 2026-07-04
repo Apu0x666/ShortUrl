@@ -1,0 +1,47 @@
+FROM golang:1.24-alpine AS hey-builder
+
+RUN go install github.com/rakyll/hey@latest
+
+FROM alpine:3.22
+
+RUN apk add --no-cache \
+        bash \
+        curl \
+        postgresql17-client \
+        python3
+
+COPY --from=hey-builder /go/bin/hey /usr/local/bin/hey
+
+RUN cat <<'EOF' > /usr/local/bin/run-load-test
+#!/usr/bin/env bash
+set -euo pipefail
+
+tmp_script="$(mktemp)"
+trap 'rm -f "$tmp_script"' EXIT
+
+tr -d '\r' < /workspace/scripts/load-test.sh > "$tmp_script"
+chmod +x "$tmp_script"
+
+exec bash "$tmp_script" "$@"
+EOF
+
+RUN chmod +x /usr/local/bin/run-load-test
+
+RUN cat <<'EOF' > /usr/local/bin/run-smoke-check
+#!/usr/bin/env bash
+set -euo pipefail
+
+tmp_script="$(mktemp)"
+trap 'rm -f "$tmp_script"' EXIT
+
+tr -d '\r' < /workspace/scripts/smoke-check.sh > "$tmp_script"
+chmod +x "$tmp_script"
+
+exec bash "$tmp_script" "$@"
+EOF
+
+RUN chmod +x /usr/local/bin/run-smoke-check
+
+WORKDIR /workspace
+
+CMD ["bash"]

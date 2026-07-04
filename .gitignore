@@ -1,0 +1,36 @@
+# Dependencies
+/vendor/
+
+# Runtime, cache, logs
+/var/
+/.phpunit.cache/
+.phpunit.result.cache
+*.log
+
+# Environment local overrides
+.env
+.env.local
+.env.local.php
+.env.*.local
+/AGENTS.md
+
+# IDE and editor files
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary and backup files
+*.tmp
+*.bak
+
+# Optional local directories
+/coverage/
+/docker-data/
+/node_modules/

@@ -1,0 +1,18 @@
+parameters:
+    app.short_url_base: '%env(SHORT_URL_BASE)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Service\ShortUrlBuilder:
+        arguments:
+            $shortUrlBase: '%app.short_url_base%'

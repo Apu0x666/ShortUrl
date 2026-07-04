@@ -1,0 +1,18 @@
+framework:
+    messenger:
+        transports:
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    exchange:
+                        name: shorturl
+                        type: direct
+                    queues:
+                        shorturl_generate: ~
+                retry_strategy:
+                    max_retries: 5
+                    delay: 1000
+                    multiplier: 2
+                    max_delay: 10000
+        routing:
+            App\Message\GenerateShortlinkMessage: async
